@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>marcelonchescards</title>
+<meta name="theme-color" content="#141414">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIm1hcmNlbG9uY2hlc2NhcmRzIiwgInNob3J0X25hbWUiOiAibWFyY2Vsb25jaGVzY2FyZHMiLCAic3RhcnRfdXJsIjogIi4iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgImJhY2tncm91bmRfY29sb3IiOiAiIzE0MTQxNCIsICJ0aGVtZV9jb2xvciI6ICIjQzlBMjRCIn0=">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&display=swap');
+  @font-face { font-family: 'Source Serif'; src: local('Source Serif Pro'); }
+
+  :root{
+    --paper:#F7F6F3;
+    --ink:#1C1B1A;
+    --ink-soft:#5B5852;
+    --accent:#8A6D1F;
+    --accent-soft:#F0E6C8;
+    --card-back:#EFE9DC;
+    --card-front:#FFFFFF;
+    --line:#DEDAD0;
+    --red:#A8432F;
+    --shadow: 0 1px 0 rgba(28,27,26,0.06);
+    --overlay: rgba(28,27,26,0.4);
+    --gold: #C9A24B;
+    --gold-bright: #E8C468;
+    --on-accent: #1C1608;
+  }
+
+  html[data-theme="dark"]{
+    --paper:#141414;
+    --ink:#EDEAE2;
+    --ink-soft:#8F8A7F;
+    --accent:#C9A24B;
+    --accent-soft:#33291455;
+    --card-back:#232320;
+    --card-front:#1C1C1A;
+    --line:#33322C;
+    --red:#D97A63;
+    --shadow: 0 1px 0 rgba(0,0,0,0.3);
+    --overlay: rgba(0,0,0,0.65);
+    --gold: #E8C468;
+    --gold-bright: #F5D683;
+    --on-accent: #1C1608;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family: 'Iowan Old Style','Palatino Linotype','Georgia',serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .ui{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+
+  button{ font-family:inherit; cursor:pointer; }
+  input, textarea, select{ font-family:inherit; }
+
+  /* ---------- Splash ---------- */
+  #splash{
+    position:fixed; inset:0; z-index:200; background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    animation: splashOut 0.5s ease 1.1s forwards;
+  }
+  .splash-mark{
+    font-family:'Archivo Black', 'Arial Black', sans-serif;
+    font-style:italic;
+    font-size:clamp(32px, 9vw, 48px);
+    letter-spacing:-0.02em;
+    background: linear-gradient(100deg, var(--gold-bright), var(--gold) 55%, #9c7a2e);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    transform: skewX(-4deg) scale(0.9);
+    opacity:0;
+    animation: splashIn 0.55s cubic-bezier(.2,.8,.2,1) 0.05s forwards;
+  }
+  @keyframes splashIn{ to{ opacity:1; transform:skewX(-4deg) scale(1); } }
+  @keyframes splashOut{ to{ opacity:0; visibility:hidden; pointer-events:none; } }
+
+  /* ---------- App shell ---------- */
+  #app{ max-width:640px; margin:0 auto; min-height:100%; display:flex; flex-direction:column; }
+
+  header.topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 20px 14px;
+    position:sticky; top:0; background:var(--paper); z-index:10;
+    border-bottom:1px solid transparent;
+  }
+  header.topbar.scrolled{ border-bottom-color:var(--line); }
+  .brand{ display:flex; align-items:baseline; gap:8px; }
+  .brand .mark{
+    font-family:'Archivo Black', 'Arial Black', sans-serif;
+    font-style: italic;
+    font-size:19px;
+    letter-spacing:-0.02em;
+    background: linear-gradient(100deg, var(--gold-bright), var(--gold) 60%, #9c7a2e);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    transform: skewX(-4deg);
+    display:inline-block;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+  }
+  .brand .tag{ font-family: 'Iowan Old Style', serif; font-style:italic; color:var(--ink-soft); font-size:14px; }
+  .icon-btn{
+    background:none; border:none; color:var(--ink); padding:6px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:8px;
+  }
+  .icon-btn:active{ background:var(--accent-soft); }
+
+  main{ flex:1; padding:0 20px 100px; }
+
+  /* ---------- Empty state ---------- */
+  .empty{ text-align:center; padding:80px 20px 40px; color:var(--ink-soft); }
+  .empty .glyph{ font-size:40px; margin-bottom:14px; opacity:0.6; }
+  .empty h2{ font-family:'Iowan Old Style',serif; font-weight:normal; font-size:20px; color:var(--ink); margin:0 0 8px; }
+  .empty p{ font-size:15px; line-height:1.5; max-width:320px; margin:0 auto 22px; }
+
+  /* ---------- Deck list ---------- */
+  .section-label{
+    font-family: -apple-system, sans-serif; font-size:12px; color:var(--ink-soft);
+    margin: 22px 0 10px; letter-spacing:0.02em;
+  }
+  .deck{
+    display:flex; align-items:center; gap:14px;
+    padding:16px 4px; border-bottom:1px solid var(--line);
+  }
+  .deck:active{ background:rgba(0,0,0,0.02); }
+  .deck-swatch{
+    width:6px; height:38px; border-radius:3px; flex-shrink:0;
+  }
+  .deck-info{ flex:1; min-width:0; }
+  .deck-name{ font-size:17px; }
+  .deck-meta{ font-family:-apple-system,sans-serif; font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+  .deck-due{
+    font-family:-apple-system,sans-serif; font-size:12.5px; font-weight:600;
+    background:var(--accent); color:var(--on-accent); padding:3px 9px; border-radius:20px;
+    flex-shrink:0;
+  }
+  .deck-due.zero{ background:var(--line); color:var(--ink-soft); }
+  .deck-chevron{ color:var(--line); flex-shrink:0; }
+
+  /* ---------- FAB ---------- */
+  .fab{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%);
+    width:min(600px, calc(100% - 40px));
+    display:flex; gap:10px; z-index:20;
+  }
+  .fab button{
+    flex:1; border:none; border-radius:14px; padding:15px;
+    font-family:-apple-system,sans-serif; font-size:15px; font-weight:600;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .fab .primary{ background:var(--accent); color:var(--on-accent); box-shadow:0 4px 14px rgba(201,162,75,0.35); }
+  .fab .secondary{ background:var(--card-front); color:var(--ink); border:1px solid var(--line) !important; }
+
+  /* ---------- Modal / sheet ---------- */
+  .sheet-overlay{
+    position:fixed; inset:0; background:var(--overlay); z-index:50;
+    display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity 0.2s ease;
+  }
+  .sheet-overlay.open{ opacity:1; pointer-events:auto; }
+  .sheet{
+    background:var(--paper); width:100%; max-width:640px;
+    border-radius:20px 20px 0 0; padding:22px 20px 28px;
+    transform:translateY(100%); transition:transform 0.28s cubic-bezier(.32,.72,0,1);
+    max-height:88vh; overflow-y:auto;
+  }
+  .sheet-overlay.open .sheet{ transform:translateY(0); }
+  .sheet h3{ font-family:'Iowan Old Style',serif; font-weight:normal; font-size:20px; margin:0 0 18px; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-family:-apple-system,sans-serif; font-size:12.5px; color:var(--ink-soft); margin-bottom:6px; }
+  .field input, .field textarea{
+    width:100%; border:1px solid var(--line); border-radius:10px; padding:12px 14px;
+    font-size:16px; background:var(--card-front); color:var(--ink); resize:vertical;
+  }
+  .field input:focus, .field textarea:focus{ outline:none; border-color:var(--accent); }
+  .swatches{ display:flex; gap:10px; flex-wrap:wrap; }
+  .swatch{ width:30px; height:30px; border-radius:50%; border:2px solid transparent; }
+  .swatch.selected{ border-color:var(--ink); }
+  .sheet-actions{ display:flex; gap:10px; margin-top:22px; }
+  .btn{
+    border:none; border-radius:10px; padding:13px 18px; font-size:15px; font-weight:600;
+    font-family:-apple-system,sans-serif; flex:1; text-align:center;
+  }
+  .btn.primary{ background:var(--accent); color:var(--on-accent); }
+  .btn.ghost{ background:none; color:var(--ink-soft); border:1px solid var(--line); }
+  .btn.danger{ background:none; color:var(--red); }
+  .btn:disabled{ opacity:0.5; }
+
+  /* ---------- Deck detail ---------- */
+  .back-row{ display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+  .back-row button{ background:none; border:none; color:var(--accent); font-family:-apple-system,sans-serif; font-size:15px; display:flex; align-items:center; gap:4px; padding:6px 0; }
+  .deck-title{ font-family:'Iowan Old Style',serif; font-size:26px; margin:6px 0 4px; }
+  .deck-stats{ display:flex; gap:18px; margin:14px 0 22px; }
+  .stat{ }
+  .stat .num{ font-size:22px; font-family:'Iowan Old Style',serif; }
+  .stat .lbl{ font-family:-apple-system,sans-serif; font-size:11.5px; color:var(--ink-soft); }
+
+  .card-row{
+    display:flex; align-items:flex-start; gap:12px; padding:14px 4px; border-bottom:1px solid var(--line);
+  }
+  .card-row .front{ font-size:15px; flex:1; }
+  .card-row .front .back-preview{ font-size:13px; color:var(--ink-soft); margin-top:3px; }
+  .card-row .badge{
+    font-family:-apple-system,sans-serif; font-size:10.5px; padding:2px 7px; border-radius:20px;
+    background:var(--accent-soft); color:var(--accent); flex-shrink:0; margin-top:2px;
+  }
+  .card-row .badge.new{ background:var(--line); color:var(--ink-soft); }
+  .row-actions{ display:flex; gap:2px; flex-shrink:0; }
+  .row-actions button{ background:none; border:none; color:var(--ink-soft); padding:6px; }
+
+  /* ---------- Study view ---------- */
+  #studyView{ position:fixed; inset:0; background:var(--paper); z-index:60; display:none; flex-direction:column; }
+  #studyView.open{ display:flex; }
+  .study-top{ display:flex; align-items:center; gap:14px; padding:18px 20px 8px; }
+
+  .hype-message{
+    position:fixed; top:14%; left:50%;
+    transform:translate(-50%, -10px) scale(0.85) rotate(-2deg);
+    z-index:60; pointer-events:none;
+    font-family:'Archivo Black','Arial Black',sans-serif;
+    font-style:italic;
+    font-size:clamp(20px, 6vw, 28px);
+    text-align:center; padding:14px 26px; border-radius:14px;
+    max-width:88%;
+    opacity:0;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+  }
+  .hype-message.good{ background:linear-gradient(100deg, var(--gold-bright), var(--gold)); color:var(--on-accent); }
+  .hype-message.bad{ background:#9B4A3D; color:#FBEAE6; }
+  .hype-message.show{
+    animation: hypePunch 1s cubic-bezier(.2,.9,.25,1) forwards;
+  }
+  @keyframes hypePunch{
+    0%{ opacity:0; transform:translate(-50%, -10px) scale(0.7) rotate(-3deg); }
+    15%{ opacity:1; transform:translate(-50%, 0) scale(1.08) rotate(1deg); }
+    25%{ transform:translate(-50%, 0) scale(1) rotate(-1deg); }
+    80%{ opacity:1; transform:translate(-50%, 0) scale(1) rotate(0deg); }
+    100%{ opacity:0; transform:translate(-50%, -6px) scale(0.96) rotate(0deg); }
+  }
+  .study-progress{ flex:1; height:4px; background:var(--line); border-radius:4px; overflow:hidden; }
+  .study-progress-fill{ height:100%; background:var(--accent); border-radius:4px; transition:width 0.3s ease; }
+  .study-counter{ font-family:-apple-system,sans-serif; font-size:13px; color:var(--ink-soft); flex-shrink:0; }
+
+  .study-stage{ flex:1; display:flex; align-items:center; justify-content:center; padding:20px 24px; perspective:1400px; }
+  .flip-card{
+    width:100%; max-width:440px; aspect-ratio:5/6; max-height:60vh;
+    position:relative; cursor:pointer;
+  }
+  .flip-inner{
+    width:100%; height:100%; position:relative; transform-style:preserve-3d;
+    transition:transform 0.45s cubic-bezier(.4,0,.2,1);
+  }
+  .flip-card.flipped .flip-inner{ transform:rotateY(180deg); }
+  .flip-face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:18px; display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:32px; box-shadow:0 8px 30px rgba(28,27,26,0.08), 0 1px 3px rgba(28,27,26,0.06);
+  }
+  .flip-face.front{ background:var(--card-front); }
+  .flip-face.back{ background:var(--card-back); transform:rotateY(180deg); }
+  .flip-face .content{ font-size:22px; line-height:1.4; }
+  .flip-hint{
+    position:absolute; bottom:16px; left:0; right:0; text-align:center;
+    font-family:-apple-system,sans-serif; font-size:11.5px; color:var(--ink-soft); opacity:0.7;
+  }
+
+  .study-bottom{ padding:16px 20px 32px; }
+  .grade-row{ display:flex; gap:8px; }
+  .grade-btn{
+    flex:1; border:none; border-radius:12px; padding:14px 6px;
+    font-family:-apple-system,sans-serif; font-size:13px; font-weight:600; color:#fff;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+  }
+  .grade-btn .sub{ font-size:10.5px; font-weight:400; opacity:0.85; }
+  .grade-again{ background:#9B4A3D; }
+  .grade-hard{ background:#B08541; }
+  .grade-good{ background:#3E7A63; }
+  .grade-easy{ background:#2B5D4F; }
+  .tap-hint{
+    text-align:center; font-family:-apple-system,sans-serif; font-size:14px; color:var(--ink-soft);
+    padding:15px;
+  }
+
+  .study-done{ text-align:center; padding:40px 30px; }
+  .study-done .glyph{ font-size:44px; margin-bottom:16px; }
+  .study-done h2{ font-family:'Iowan Old Style',serif; font-weight:normal; font-size:22px; margin:0 0 8px; }
+  .study-done p{ color:var(--ink-soft); font-size:15px; margin-bottom:26px; }
+
+  /* ---------- Generate view ---------- */
+  .gen-textarea{ min-height:140px; }
+  .gen-loading{ display:flex; align-items:center; gap:10px; color:var(--ink-soft); font-family:-apple-system,sans-serif; font-size:14px; padding:14px 0; }
+  .spinner{ width:16px; height:16px; border:2px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .gen-card{
+    background:var(--card-front); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:10px;
+  }
+  .gen-card .gf{ font-size:15px; margin-bottom:8px; }
+  .gen-card .gb{ font-size:14px; color:var(--ink-soft); border-top:1px dashed var(--line); padding-top:8px; }
+  .gen-card-actions{ display:flex; justify-content:flex-end; gap:4px; margin-top:8px; }
+  .gen-card-actions button{ background:none; border:none; color:var(--ink-soft); font-family:-apple-system,sans-serif; font-size:12.5px; padding:4px 8px; }
+  .gen-card-actions button.remove{ color:var(--red); }
+
+  .toast{
+    position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:var(--paper); font-family:-apple-system,sans-serif; font-size:14px;
+    padding:12px 20px; border-radius:10px; z-index:100; opacity:0; transition:all 0.25s ease; pointer-events:none;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  ::-webkit-scrollbar{ display:none; }
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-mark">marcelonchescards</div>
+</div>
+
+<div id="app">
+  <header class="topbar ui" id="topbar">
+    <div class="brand" id="logoHome" style="cursor:pointer;">
+      <span class="mark">marcelonchescards</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:2px;">
+      <button class="icon-btn" id="themeBtn" title="Tema">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path id="themeIconPath" d="M12 3a9 9 0 109 9c0-.46-.03-.92-.08-1.36A5.5 5.5 0 0112 3z"/></svg>
+      </button>
+      <button class="icon-btn" id="statsBtn" title="Progreso">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19h16M8 19V9m4 10V5m4 14v-7"/></svg>
+      </button>
+      <button class="icon-btn" id="backupBtn" title="Respaldo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div id="deckListWrap"></div>
+  </main>
+</div>
+
+<div class="fab">
+  <button class="secondary" id="newDeckBtn">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    Mazo nuevo
+  </button>
+</div>
+
+<!-- New / edit deck sheet -->
+<div class="sheet-overlay ui" id="deckSheet">
+  <div class="sheet">
+    <h3 id="deckSheetTitle">Nuevo mazo</h3>
+    <div class="field">
+      <label>Nombre de la materia</label>
+      <input type="text" id="deckNameInput" placeholder="Ej. Farmacología — cardio" maxlength="60">
+    </div>
+    <div class="field">
+      <label>Color</label>
+      <div class="swatches" id="colorSwatches"></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="deckCancelBtn">Cancelar</button>
+      <button class="btn primary" id="deckSaveBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deck detail -->
+<div class="sheet-overlay ui" id="detailSheet" style="align-items:stretch;">
+  <div class="sheet" style="border-radius:0; max-height:100vh; height:100%; max-width:640px; margin:0 auto;">
+    <div class="back-row">
+      <button id="detailBackBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        Mazos
+      </button>
+    </div>
+    <div class="deck-title" id="detailTitle"></div>
+    <div class="deck-stats" id="detailStats"></div>
+    <div style="display:flex; gap:10px; margin-bottom:10px;">
+      <button class="btn primary" id="detailStudyBtn" style="flex:1;">Repasar</button>
+      <button class="btn ghost" id="detailFreeStudyBtn" style="flex:1;">🔀 Repaso libre</button>
+    </div>
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+      <button class="btn ghost" id="detailAddCardBtn" style="flex:1;">+ Tarjeta</button>
+      <button class="btn ghost" id="detailGenBtn" style="flex:1;">✨ Generar</button>
+    </div>
+    <div id="detailCardList"></div>
+  </div>
+</div>
+
+<!-- New card sheet -->
+<div class="sheet-overlay ui" id="cardSheet">
+  <div class="sheet">
+    <h3 id="cardSheetTitle">Nueva tarjeta</h3>
+    <div class="field">
+      <label>Frente (pregunta)</label>
+      <textarea id="cardFrontInput" rows="3" placeholder="¿Qué pregunta quieres recordar?"></textarea>
+    </div>
+    <div class="field">
+      <label>Reverso (respuesta)</label>
+      <textarea id="cardBackInput" rows="3" placeholder="La respuesta"></textarea>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="cardCancelBtn">Cancelar</button>
+      <button class="btn primary" id="cardSaveBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generate sheet -->
+<div class="sheet-overlay ui" id="genSheet">
+  <div class="sheet">
+    <h3>Generar con IA</h3>
+    <div class="field">
+      <label>Pega tus apuntes o describe el tema</label>
+      <textarea class="gen-textarea" id="genInput" placeholder="Pega un fragmento de tus apuntes, o escribe un tema, ej: 'Ciclo de Krebs' o 'Anticuerpos: estructura y clases'"></textarea>
+    </div>
+    <div class="field">
+      <label>Cuántas tarjetas</label>
+      <input type="number" id="genCount" value="8" min="3" max="20">
+    </div>
+    <button class="btn primary" id="genRunBtn" style="width:100%;">Generar tarjetas</button>
+    <div id="genLoading" style="display:none;" class="gen-loading"><div class="spinner"></div> Pensando en buenas preguntas…</div>
+    <div id="genResults" style="margin-top:18px;"></div>
+    <div id="genActions" style="display:none; margin-top:14px; gap:10px;" class="sheet-actions">
+      <button class="btn ghost" id="genDiscardBtn">Descartar todo</button>
+      <button class="btn primary" id="genAddAllBtn">Añadir todas al mazo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Backup sheet -->
+<div class="sheet-overlay ui" id="backupSheet">
+  <div class="sheet">
+    <h3>Respaldo</h3>
+    <p style="font-size:14.5px; color:var(--ink-soft); margin:-8px 0 20px; line-height:1.5;">
+      Todos tus mazos se guardan en este dispositivo. Descarga un respaldo para no perderlos, o pásalos a otro dispositivo importando el archivo ahí.
+    </p>
+    <button class="btn primary" id="exportBtn" style="width:100%; margin-bottom:10px;">Descargar respaldo</button>
+    <button class="btn ghost" id="importBtn" style="width:100%;">Importar respaldo</button>
+    <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;">
+    <div id="backupMsg" style="font-size:13.5px; margin-top:14px; text-align:center;"></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" id="backupCloseBtn" style="width:100%;">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Study view -->
+<div id="studyView" class="ui">
+  <div id="hypeMessage" class="hype-message"></div>
+  <div class="study-top">
+
+    <button class="icon-btn" id="studyCloseBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="study-progress"><div class="study-progress-fill" id="studyProgressFill"></div></div>
+    <div class="study-counter" id="studyCounter"></div>
+  </div>
+  <div class="study-stage" id="studyStage"></div>
+  <div class="study-bottom" id="studyBottom"></div>
+</div>
+
+<div class="toast ui" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Theme ----------
+  const THEME_KEY = 'fichero_theme';
+  const sunPath = "M12 17a5 5 0 100-10 5 5 0 000 10zM12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42";
+  const moonPath = "M12 3a9 9 0 109 9c0-.46-.03-.92-.08-1.36A5.5 5.5 0 0112 3z";
+
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('themeIconPath').setAttribute('d', theme === 'dark' ? sunPath : moonPath);
+    localStorage.setItem(THEME_KEY, theme);
+  }
+  const savedTheme = localStorage.getItem(THEME_KEY) ||
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(savedTheme);
+  document.getElementById('themeBtn').addEventListener('click', ()=>{
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  // ---------- Storage ----------
+  const STORE_KEY = 'fichero_data_v1';
+  function loadData(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return { decks: [] };
+  }
+  function saveData(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+
+  let state = loadData();
+
+  const COLORS = ['#2B5D4F','#A8432F','#B08541','#4A5C7A','#7A4A6B','#3E7A63'];
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+  // ---------- SM-2 spaced repetition ----------
+  // card: { ef, interval (days), reps, due (timestamp), lapses }
+  function initSchedule(){
+    return { ef: 2.5, interval: 0, reps: 0, due: Date.now(), lapses: 0 };
+  }
+  function schedule(card, grade){
+    // grade: 0 again, 1 hard, 2 good, 3 easy
+    let { ef, interval, reps } = card;
+    if(grade === 0){
+      card.lapses = (card.lapses||0) + 1;
+      reps = 0;
+      interval = 0; // due again today (in this session / today)
+      ef = Math.max(1.3, ef - 0.2);
+      card.due = Date.now(); // immediately requeue
+    } else {
+      const q = grade === 1 ? 3 : grade === 2 ? 4 : 5;
+      ef = ef + (0.1 - (5-q)*(0.08+(5-q)*0.02));
+      ef = Math.max(1.3, ef);
+      reps = reps + 1;
+      if(reps === 1) interval = grade === 1 ? 1 : 1;
+      else if(reps === 2) interval = grade === 1 ? 2 : 3;
+      else interval = Math.round(interval * ef);
+      if(grade === 1) interval = Math.max(1, Math.round(interval * 0.7));
+      if(grade === 3) interval = Math.round(interval * 1.3) || 4;
+      card.due = Date.now() + interval * 86400000;
+    }
+    card.ef = ef; card.interval = interval; card.reps = reps;
+  }
+
+  function dueCount(deck){
+    const now = Date.now();
+    return deck.cards.filter(c => c.sched.due <= now).length;
+  }
+
+  // ---------- Rendering: deck list ----------
+  const deckListWrap = document.getElementById('deckListWrap');
+
+  function render(){
+    if(state.decks.length === 0){
+      deckListWrap.innerHTML = `
+        <div class="empty">
+          <div class="glyph">◈</div>
+          <h2>Todavía no tienes mazos</h2>
+          <p>Crea un mazo por materia y empieza a llenarlo de tarjetas — a mano o generadas al vuelo.</p>
+        </div>`;
+      return;
+    }
+    let html = '<div class="section-label">Tus mazos</div>';
+    state.decks.forEach(deck => {
+      const due = dueCount(deck);
+      html += `
+        <div class="deck" data-id="${deck.id}">
+          <div class="deck-swatch" style="background:${deck.color}"></div>
+          <div class="deck-info">
+            <div class="deck-name">${escapeHtml(deck.name)}</div>
+            <div class="deck-meta">${deck.cards.length} tarjeta${deck.cards.length===1?'':'s'}</div>
+          </div>
+          <div class="deck-due ${due===0?'zero':''}">${due===0 ? 'al día' : due + ' hoy'}</div>
+          <div class="deck-chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+        </div>`;
+    });
+    deckListWrap.innerHTML = html;
+    deckListWrap.querySelectorAll('.deck').forEach(el=>{
+      el.addEventListener('click', ()=> openDetail(el.dataset.id));
+    });
+  }
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  window.addEventListener('scroll', ()=>{
+    document.getElementById('topbar').classList.toggle('scrolled', window.scrollY > 4);
+  });
+
+  // ---------- New deck sheet ----------
+  const deckSheet = document.getElementById('deckSheet');
+  const deckNameInput = document.getElementById('deckNameInput');
+  const colorSwatches = document.getElementById('colorSwatches');
+  let selectedColor = COLORS[0];
+  let editingDeckId = null;
+
+  function buildSwatches(){
+    colorSwatches.innerHTML = COLORS.map(c => `<div class="swatch" data-c="${c}" style="background:${c}"></div>`).join('');
+    colorSwatches.querySelectorAll('.swatch').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        selectedColor = el.dataset.c;
+        colorSwatches.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
+        el.classList.add('selected');
+      });
+    });
+  }
+  buildSwatches();
+
+  function openDeckSheet(deck){
+    editingDeckId = deck ? deck.id : null;
+    document.getElementById('deckSheetTitle').textContent = deck ? 'Editar mazo' : 'Nuevo mazo';
+    deckNameInput.value = deck ? deck.name : '';
+    selectedColor = deck ? deck.color : COLORS[state.decks.length % COLORS.length];
+    colorSwatches.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('selected', s.dataset.c === selectedColor));
+    deckSheet.classList.add('open');
+    setTimeout(()=>deckNameInput.focus(), 300);
+  }
+  function closeDeckSheet(){ deckSheet.classList.remove('open'); }
+
+  document.getElementById('newDeckBtn').addEventListener('click', ()=> openDeckSheet(null));
+  document.getElementById('deckCancelBtn').addEventListener('click', closeDeckSheet);
+  deckSheet.addEventListener('click', e => { if(e.target === deckSheet) closeDeckSheet(); });
+
+  document.getElementById('deckSaveBtn').addEventListener('click', ()=>{
+    const name = deckNameInput.value.trim();
+    if(!name){ deckNameInput.focus(); return; }
+    if(editingDeckId){
+      const d = state.decks.find(x=>x.id===editingDeckId);
+      d.name = name; d.color = selectedColor;
+    } else {
+      state.decks.push({ id: uid(), name, color: selectedColor, cards: [] });
+    }
+    saveData(); render(); closeDeckSheet();
+    showToast(editingDeckId ? 'Mazo actualizado' : 'Mazo creado');
+  });
+
+  // ---------- Toast ----------
+  let toastTimer;
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+  }
+
+  // ---------- Deck detail ----------
+  const detailSheet = document.getElementById('detailSheet');
+  let currentDeckId = null;
+
+  function openDetail(id){
+    currentDeckId = id;
+    renderDetail();
+    detailSheet.classList.add('open');
+  }
+  function closeDetail(){ detailSheet.classList.remove('open'); currentDeckId = null; render(); }
+
+  document.getElementById('detailBackBtn').addEventListener('click', closeDetail);
+
+  function currentDeck(){ return state.decks.find(d=>d.id===currentDeckId); }
+
+  function renderDetail(){
+    const deck = currentDeck();
+    if(!deck) return;
+    document.getElementById('detailTitle').textContent = deck.name;
+    const due = dueCount(deck);
+    document.getElementById('detailStats').innerHTML = `
+      <div class="stat"><div class="num">${deck.cards.length}</div><div class="lbl">tarjetas</div></div>
+      <div class="stat"><div class="num">${due}</div><div class="lbl">para hoy</div></div>
+      <div class="stat"><div class="num">${deck.cards.filter(c=>c.sched.reps>0).length}</div><div class="lbl">en repaso</div></div>
+    `;
+    document.getElementById('detailStudyBtn').disabled = deck.cards.length === 0;
+    document.getElementById('detailStudyBtn').style.opacity = deck.cards.length === 0 ? 0.5 : 1;
+
+    const list = document.getElementById('detailCardList');
+    if(deck.cards.length === 0){
+      list.innerHTML = `<div class="empty" style="padding:40px 10px;"><div class="glyph">✎</div><h2 style="font-size:17px;">Este mazo está vacío</h2><p style="font-size:14px;">Añade tarjetas a mano o genera varias a partir de tus apuntes.</p></div>`;
+      return;
+    }
+    let html = '<div class="section-label">Tarjetas</div>';
+    deck.cards.forEach(c=>{
+      const isNew = c.sched.reps === 0;
+      const isDue = c.sched.due <= Date.now();
+      html += `
+        <div class="card-row" data-id="${c.id}">
+          <div class="front">
+            ${escapeHtml(c.front)}
+            <div class="back-preview">${escapeHtml(c.back)}</div>
+          </div>
+          <div class="badge ${isNew?'new':''}">${isNew ? 'nueva' : (isDue ? 'hoy' : 'programada')}</div>
+          <div class="row-actions">
+            <button class="edit-card" data-id="${c.id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+            <button class="del-card" data-id="${c.id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z"/></svg></button>
+          </div>
+        </div>`;
+    });
+    list.innerHTML = html;
+    list.querySelectorAll('.edit-card').forEach(b=>b.addEventListener('click', e=>{ e.stopPropagation(); openCardSheet(b.dataset.id); }));
+    list.querySelectorAll('.del-card').forEach(b=>b.addEventListener('click', e=>{
+      e.stopPropagation();
+      const deck = currentDeck();
+      if(!deck) return;
+      deck.cards = deck.cards.filter(c=>c.id!==b.dataset.id);
+      saveData(); renderDetail();
+      showToast('Tarjeta eliminada');
+    }));
+  }
+
+  // ---------- Card sheet ----------
+  const cardSheet = document.getElementById('cardSheet');
+  const cardFrontInput = document.getElementById('cardFrontInput');
+  const cardBackInput = document.getElementById('cardBackInput');
+  let editingCardId = null;
+
+  function openCardSheet(cardId){
+    editingCardId = cardId || null;
+    const deck = currentDeck();
+    if(!deck) return;
+    document.getElementById('cardSheetTitle').textContent = editingCardId ? 'Editar tarjeta' : 'Nueva tarjeta';
+    if(editingCardId){
+      const c = deck.cards.find(x=>x.id===editingCardId);
+      cardFrontInput.value = c.front; cardBackInput.value = c.back;
+    } else {
+      cardFrontInput.value = ''; cardBackInput.value = '';
+    }
+    cardSheet.classList.add('open');
+    setTimeout(()=>cardFrontInput.focus(), 300);
+  }
+  function closeCardSheet(){ cardSheet.classList.remove('open'); }
+
+  document.getElementById('detailAddCardBtn').addEventListener('click', ()=> openCardSheet(null));
+  document.getElementById('cardCancelBtn').addEventListener('click', closeCardSheet);
+  cardSheet.addEventListener('click', e=>{ if(e.target===cardSheet) closeCardSheet(); });
+
+  document.getElementById('cardSaveBtn').addEventListener('click', ()=>{
+    const front = cardFrontInput.value.trim();
+    const back = cardBackInput.value.trim();
+    if(!front || !back) return;
+    const deck = currentDeck();
+    if(!deck) return;
+    if(editingCardId){
+      const c = deck.cards.find(x=>x.id===editingCardId);
+      c.front = front; c.back = back;
+    } else {
+      deck.cards.push({ id: uid(), front, back, sched: initSchedule() });
+    }
+    saveData(); renderDetail(); closeCardSheet();
+    showToast(editingCardId ? 'Tarjeta actualizada' : 'Tarjeta añadida');
+  });
+
+  // ---------- Generate sheet (AI) ----------
+  const genSheet = document.getElementById('genSheet');
+  const genInput = document.getElementById('genInput');
+  const genResults = document.getElementById('genResults');
+  const genActions = document.getElementById('genActions');
+  const genLoading = document.getElementById('genLoading');
+  let generatedCards = [];
+
+  document.getElementById('detailGenBtn').addEventListener('click', ()=>{
+    genInput.value=''; genResults.innerHTML=''; genActions.style.display='none';
+    generatedCards = [];
+    genSheet.classList.add('open');
+  });
+  genSheet.addEventListener('click', e=>{ if(e.target===genSheet) genSheet.classList.remove('open'); });
+
+  document.getElementById('genRunBtn').addEventListener('click', async ()=>{
+    const topic = genInput.value.trim();
+    if(!topic) return;
+    const count = Math.max(3, Math.min(20, parseInt(document.getElementById('genCount').value)||8));
+    genLoading.style.display='flex';
+    genResults.innerHTML=''; genActions.style.display='none';
+    try{
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 2000,
+          messages: [{
+            role:'user',
+            content: `A partir del siguiente contenido de estudio, genera exactamente ${count} flashcards en español, en formato JSON puro (un array de objetos con "front" y "back", nada más, sin markdown, sin backticks, sin texto extra).\n\nCada "front" debe ser una pregunta clara y concisa. Cada "back" debe ser una respuesta breve y precisa, del tamaño adecuado para memorizar (no un párrafo largo).\n\nContenido:\n"""\n${topic}\n"""`
+          }]
+        })
+      });
+      const data = await resp.json();
+      let text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+      text = text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+      const parsed = JSON.parse(text);
+      generatedCards = parsed.filter(c=>c && c.front && c.back).map(c=>({ id: uid(), front: String(c.front), back: String(c.back) }));
+      renderGenResults();
+    }catch(err){
+      genResults.innerHTML = `<div style="color:var(--red); font-family:-apple-system,sans-serif; font-size:14px; padding:10px 0;">No se pudo generar. Intenta de nuevo o revisa tu conexión.</div>`;
+    }
+    genLoading.style.display='none';
+  });
+
+  function renderGenResults(){
+    if(generatedCards.length===0){
+      genResults.innerHTML = `<div style="color:var(--ink-soft); font-family:-apple-system,sans-serif; font-size:14px;">No se generaron tarjetas.</div>`;
+      genActions.style.display='none';
+      return;
+    }
+    genResults.innerHTML = `<div class="section-label" style="margin-top:0;">Revisa antes de añadir (${generatedCards.length})</div>` +
+      generatedCards.map(c => `
+        <div class="gen-card" data-id="${c.id}">
+          <div class="gf">${escapeHtml(c.front)}</div>
+          <div class="gb">${escapeHtml(c.back)}</div>
+          <div class="gen-card-actions">
+            <button class="remove" data-id="${c.id}">Quitar</button>
+          </div>
+        </div>`).join('');
+    genResults.querySelectorAll('.remove').forEach(b=>b.addEventListener('click', ()=>{
+      generatedCards = generatedCards.filter(c=>c.id!==b.dataset.id);
+      renderGenResults();
+    }));
+    genActions.style.display='flex';
+  }
+
+  document.getElementById('genDiscardBtn').addEventListener('click', ()=>{
+    generatedCards = []; genResults.innerHTML=''; genActions.style.display='none';
+  });
+  document.getElementById('genAddAllBtn').addEventListener('click', ()=>{
+    const deck = currentDeck();
+    if(!deck) return;
+    generatedCards.forEach(c=>{
+      deck.cards.push({ id: uid(), front:c.front, back:c.back, sched: initSchedule() });
+    });
+    saveData(); renderDetail();
+    showToast(`${generatedCards.length} tarjetas añadidas`);
+    generatedCards = [];
+    genSheet.classList.remove('open');
+  });
+
+  // ---------- Study view ----------
+  const studyView = document.getElementById('studyView');
+  const studyStage = document.getElementById('studyStage');
+  const studyBottom = document.getElementById('studyBottom');
+  let studyQueue = [];
+  let studyIdx = 0;
+  let studyTotal = 0;
+  let currentFlipped = false;
+  let studyMode = 'spaced'; // 'spaced' | 'free'
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  document.getElementById('detailStudyBtn').addEventListener('click', ()=>{
+    const deck = currentDeck();
+    if(!deck || deck.cards.length===0) return;
+    const now = Date.now();
+    studyMode = 'spaced';
+    studyQueue = deck.cards.filter(c=>c.sched.due<=now).map(c=>c.id);
+    studyTotal = studyQueue.length;
+    studyIdx = 0;
+    studyView.classList.add('open');
+    renderStudyCard();
+  });
+
+  document.getElementById('detailFreeStudyBtn').addEventListener('click', ()=>{
+    const deck = currentDeck();
+    if(!deck || deck.cards.length===0) return;
+    studyMode = 'free';
+    studyQueue = shuffle(deck.cards.map(c=>c.id));
+    studyTotal = studyQueue.length;
+    studyIdx = 0;
+    studyView.classList.add('open');
+    renderStudyCard();
+  });
+
+  document.getElementById('studyCloseBtn').addEventListener('click', ()=>{
+    studyView.classList.remove('open');
+    renderDetail(); render();
+  });
+
+  function renderStudyCard(){
+    const deck = currentDeck();
+    if(!deck){ studyView.classList.remove('open'); render(); return; }
+    const doneCount = studyTotal - studyQueue.length;
+    document.getElementById('studyCounter').textContent = `${doneCount}/${studyTotal}`;
+    document.getElementById('studyProgressFill').style.width = (studyTotal? (doneCount/studyTotal*100) : 0) + '%';
+
+    if(studyQueue.length === 0){
+      const isFree = studyMode === 'free';
+      studyStage.innerHTML = `
+        <div class="study-done">
+          <div class="glyph">✓</div>
+          <h2>${isFree ? '¡Vuelta completa!' : 'Repaso completo'}</h2>
+          <p>${isFree ? 'Repasaste todas las tarjetas del mazo. ¿Le das otra vuelta?' : 'Terminaste las tarjetas pendientes de este mazo por hoy.'}</p>
+        </div>`;
+      if(isFree){
+        studyBottom.innerHTML = `
+          <div class="sheet-actions" style="margin-top:0;">
+            <button class="btn ghost" id="studyFinishBtn" style="flex:1;">Volver al mazo</button>
+            <button class="btn primary" id="studyAgainBtn" style="flex:1;">Repetir de nuevo</button>
+          </div>`;
+        document.getElementById('studyAgainBtn').addEventListener('click', ()=>{
+          const deck2 = currentDeck();
+          if(!deck2) return;
+          studyQueue = shuffle(deck2.cards.map(c=>c.id));
+          studyTotal = studyQueue.length;
+          renderStudyCard();
+        });
+      } else {
+        studyBottom.innerHTML = `<button class="btn primary" style="width:100%;" id="studyFinishBtn">Volver al mazo</button>`;
+      }
+      document.getElementById('studyFinishBtn').addEventListener('click', ()=>{
+        studyView.classList.remove('open');
+        renderDetail(); render();
+      });
+      return;
+    }
+
+    const cardId = studyQueue[0];
+    const card = deck.cards.find(c=>c.id===cardId);
+    currentFlipped = false;
+
+    studyStage.innerHTML = `
+      <div class="flip-card" id="flipCard">
+        <div class="flip-inner">
+          <div class="flip-face front"><div class="content">${escapeHtml(card.front)}</div></div>
+          <div class="flip-face back"><div class="content">${escapeHtml(card.back)}</div></div>
+        </div>
+        <div class="flip-hint">toca para voltear</div>
+      </div>`;
+
+    document.getElementById('flipCard').addEventListener('click', ()=> flipCurrent());
+
+    studyBottom.innerHTML = `<div class="tap-hint">Toca la tarjeta para ver la respuesta</div>`;
+  }
+
+  function flipCurrent(){
+    currentFlipped = !currentFlipped;
+    document.getElementById('flipCard').classList.toggle('flipped', currentFlipped);
+    if(currentFlipped){
+      studyBottom.innerHTML = `
+        <div class="grade-row">
+          <button class="grade-btn grade-again" data-g="0">Otra vez<span class="sub">&lt;1 min</span></button>
+          <button class="grade-btn grade-hard" data-g="1">Difícil<span class="sub">1 día</span></button>
+          <button class="grade-btn grade-good" data-g="2">Bien<span class="sub">unos días</span></button>
+          <button class="grade-btn grade-easy" data-g="3">Fácil<span class="sub">más tiempo</span></button>
+        </div>`;
+      studyBottom.querySelectorAll('.grade-btn').forEach(b=>{
+        b.addEventListener('click', ()=> gradeCurrent(parseInt(b.dataset.g)));
+      });
+    } else {
+      studyBottom.innerHTML = `<div class="tap-hint">Toca la tarjeta para ver la respuesta</div>`;
+    }
+  }
+
+  function gradeCurrent(grade){
+    const deck = currentDeck();
+    if(!deck) { studyView.classList.remove('open'); render(); return; }
+    const cardId = studyQueue[0];
+    const card = deck.cards.find(c=>c.id===cardId);
+    if(!card) return;
+
+    if(studyMode === 'spaced'){
+      schedule(card.sched, grade);
+      saveData();
+    }
+
+    studyQueue.shift();
+    if(grade === 0 && studyMode === 'spaced'){
+      // requeue near the end so it comes back this session
+      const insertAt = Math.min(studyQueue.length, 3);
+      studyQueue.splice(insertAt, 0, cardId);
+      studyTotal += 1;
+    }
+
+    if(grade === 0){
+      showHypeMessage('¿Así quieres ser el mejor? ¿Fallando?', 'bad');
+    } else if(grade === 2 || grade === 3){
+      showHypeMessage('¡Eso chingón!!', 'good');
+    }
+
+    renderStudyCard();
+  }
+
+  let hypeTimer;
+  function showHypeMessage(msg, kind){
+    const el = document.getElementById('hypeMessage');
+    el.textContent = msg;
+    el.className = 'hype-message ' + kind;
+    void el.offsetWidth; // restart animation
+    el.classList.add('show');
+    clearTimeout(hypeTimer);
+    hypeTimer = setTimeout(()=> el.classList.remove('show'), 1000);
+  }
+
+  // ---------- Stats (simple) ----------
+  document.getElementById('statsBtn').addEventListener('click', ()=>{
+    const totalCards = state.decks.reduce((s,d)=>s+d.cards.length,0);
+    const totalDue = state.decks.reduce((s,d)=>s+dueCount(d),0);
+    const learned = state.decks.reduce((s,d)=>s+d.cards.filter(c=>c.sched.reps>0).length,0);
+    showToast(`${totalCards} tarjetas · ${totalDue} para hoy · ${learned} en repaso`);
+  });
+
+  // ---------- Backup: export / import ----------
+  const backupSheet = document.getElementById('backupSheet');
+  const backupMsg = document.getElementById('backupMsg');
+
+  document.getElementById('backupBtn').addEventListener('click', ()=>{
+    backupMsg.textContent = '';
+    backupSheet.classList.add('open');
+  });
+  document.getElementById('backupCloseBtn').addEventListener('click', ()=> backupSheet.classList.remove('open'));
+  backupSheet.addEventListener('click', e=>{ if(e.target===backupSheet) backupSheet.classList.remove('open'); });
+
+  document.getElementById('exportBtn').addEventListener('click', ()=>{
+    const payload = {
+      app: 'marcelonchescards',
+      exportedAt: new Date().toISOString(),
+      data: state
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `marcelonchescards-respaldo-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+    backupMsg.style.color = 'var(--accent)';
+    backupMsg.textContent = 'Respaldo descargado.';
+  });
+
+  document.getElementById('importBtn').addEventListener('click', ()=>{
+    document.getElementById('importFileInput').click();
+  });
+
+  document.getElementById('importFileInput').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      try{
+        const parsed = JSON.parse(ev.target.result);
+        const incoming = parsed && parsed.data && Array.isArray(parsed.data.decks) ? parsed.data
+                        : (Array.isArray(parsed.decks) ? parsed : null);
+        if(!incoming || !Array.isArray(incoming.decks)) throw new Error('formato inválido');
+
+        const existingIds = new Set(state.decks.map(d=>d.id));
+        let addedDecks = 0, mergedCards = 0;
+        incoming.decks.forEach(incDeck=>{
+          if(existingIds.has(incDeck.id)){
+            const localDeck = state.decks.find(d=>d.id===incDeck.id);
+            const localCardIds = new Set(localDeck.cards.map(c=>c.id));
+            incDeck.cards.forEach(c=>{
+              if(!localCardIds.has(c.id)){ localDeck.cards.push(c); mergedCards++; }
+            });
+          } else {
+            state.decks.push(incDeck);
+            addedDecks++;
+          }
+        });
+        saveData();
+        render();
+        backupMsg.style.color = 'var(--accent)';
+        backupMsg.textContent = `Importado: ${addedDecks} mazo(s) nuevo(s), ${mergedCards} tarjeta(s) añadida(s).`;
+      }catch(err){
+        backupMsg.style.color = 'var(--red)';
+        backupMsg.textContent = 'No se pudo leer ese archivo. Asegúrate de usar un respaldo exportado desde aquí.';
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- Service worker for offline ----------
+  if('serviceWorker' in navigator){
+    const swCode = `
+      const CACHE = 'fichero-v1';
+      self.addEventListener('install', e => { self.skipWaiting(); });
+      self.addEventListener('activate', e => { self.clients.claim(); });
+      self.addEventListener('fetch', e => {
+        if(e.request.method !== 'GET') return;
+        if(e.request.url.includes('api.anthropic.com')) return;
+        e.respondWith(
+          caches.open(CACHE).then(cache =>
+            cache.match(e.request).then(cached => {
+              const fetchPromise = fetch(e.request).then(networkResp => {
+                cache.put(e.request, networkResp.clone());
+                return networkResp;
+              }).catch(()=>cached);
+              return cached || fetchPromise;
+            })
+          )
+        );
+      });
+    `;
+    try{
+      const blob = new Blob([swCode], {type:'application/javascript'});
+      const swUrl = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swUrl).catch(()=>{});
+    }catch(e){}
+  }
+
+  // ---------- Logo -> home ----------
+  document.getElementById('logoHome').addEventListener('click', ()=>{
+    document.getElementById('deckSheet').classList.remove('open');
+    document.getElementById('cardSheet').classList.remove('open');
+    document.getElementById('genSheet').classList.remove('open');
+    document.getElementById('backupSheet').classList.remove('open');
+    detailSheet.classList.remove('open');
+    studyView.classList.remove('open');
+    currentDeckId = null;
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
